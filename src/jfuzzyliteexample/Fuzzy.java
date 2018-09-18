@@ -8,17 +8,21 @@ import com.fuzzylite.norm.t.Minimum;
 import com.fuzzylite.rule.Rule;
 import com.fuzzylite.rule.RuleBlock;
 import com.fuzzylite.term.Trapezoid;
-import com.fuzzylite.term.Triangle;
 import com.fuzzylite.variable.InputVariable;
 import com.fuzzylite.variable.OutputVariable;
 
-public class JfuzzyLiteExample {
-
-    public static void main(String[] args){
-        Engine engine = new Engine();
+public class Fuzzy {
+    Engine engine;
+    InputVariable tamanho;
+    InputVariable parametro;
+    OutputVariable qualidade;
+    RuleBlock regras;
+    
+    public Fuzzy(){
+        engine = new Engine();
         engine.setName("avaliacao");
 
-        InputVariable tamanho = new InputVariable();
+        tamanho = new InputVariable();
         tamanho.setName("tamanho");
         tamanho.setRange(0.0, 35.0);
        
@@ -28,7 +32,7 @@ public class JfuzzyLiteExample {
         tamanho.addTerm(new Trapezoid("muitoLongo", 25, 30, 35, 36));
         engine.addInputVariable(tamanho);
                 
-        InputVariable parametro = new InputVariable();
+        parametro = new InputVariable();
         parametro.setName("parametro");
         parametro.setRange(0.0, 14.0);
        
@@ -38,7 +42,7 @@ public class JfuzzyLiteExample {
         parametro.addTerm(new Trapezoid("muitoAlto", 10, 12, 14, 15));
         engine.addInputVariable(parametro);
 
-        OutputVariable qualidade = new OutputVariable();
+        qualidade = new OutputVariable();
         qualidade.setName("qualidade");
         qualidade.setRange(0.0, 10.0);
         
@@ -53,7 +57,7 @@ public class JfuzzyLiteExample {
         qualidade.addTerm(new Trapezoid("preocupante", 7, 8, 9, 10));
         engine.addOutputVariable(qualidade);
 
-        RuleBlock regras = new RuleBlock();
+        regras = new RuleBlock();
         regras.setName("regras");
         regras.setConjunction(new Minimum());//interção
         regras.setDisjunction(new Maximum());//união
@@ -76,14 +80,50 @@ public class JfuzzyLiteExample {
         regras.addRule(Rule.parse("if tamanho is muitoLongo and parametro is alto then qualidade is preocupante", engine));
         regras.addRule(Rule.parse("if tamanho is muitoLongo and parametro is muitoAlto then qualidade is preocupante", engine));
         engine.addRuleBlock(regras);
-
+        
+    }
+        
+    public float[] tratamento(float tamanho, float parametro){
+        float[] resultado = new float[5];
+        
         InputVariable tamanhoinput = engine.getInputVariable("tamanho");
         InputVariable parametroinput = engine.getInputVariable("parametro");
         OutputVariable qualidadeoutput = engine.getOutputVariable("qualidade");
 
-        tamanhoinput.setValue(7);
-        parametroinput.setValue(3);
+        tamanhoinput.setValue(tamanho);
+        parametroinput.setValue(parametro);
         engine.process();
-        System.out.println("Tamanho: " + tamanhoinput.getValue() + "\nParametro:  " + parametroinput.getValue() + "\nQualidade: " + qualidadeoutput.fuzzyOutputValue());
+        
+       // System.out.println("Tamanho: " + tamanhoinput.getValue() + "\nParametro:  " + parametroinput.getValue() + "\nQualidade: " + qualidadeoutput.fuzzyOutputValue());
+          
+        //Tratamento da string para conversão em float
+      // System.out.println("\n*=====* Tratamento da String *=====*\n");
+  
+        //Retirada do da virgula pelo ponto para conversao de char para decimal
+        String correcao = qualidadeoutput.fuzzyOutputValue().replace(',', '.');
+       // System.out.println("Excelente:" + correcao);
+      
+        //Qualidade Excelente
+       resultado[0] = Float.parseFloat(correcao.substring(0, 5)); 
+       // System.out.println("Excelente:" + a);
+         
+        //Qualidade Muito Bom
+       resultado[1] = Float.parseFloat(correcao.substring(18,23)); 
+       // System.out.println("Muito Bom:" + b);
+         
+        //Qualidade Bom
+       resultado[2] = Float.parseFloat(correcao.substring(34,40)); 
+       // System.out.println("Bom:" + c);
+   
+        //Qualidade Regular
+        resultado[3] = Float.parseFloat(correcao.substring(46,52)); 
+        //System.out.println("Regular:" + d);
+      
+          //Qualidade Preocupante
+        resultado[4] = Float.parseFloat(correcao.substring(62,68)); 
+        //System.out.println("Preocupante:" + e);
+        
+        return resultado;
     }
+    
 }
